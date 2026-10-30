@@ -1,7 +1,8 @@
 import json
 import os
 
-from product import Product
+from physical_product import PhysicalProduct
+from digital_product import DigitalProduct
 from inventory import Inventory
 
 INVENTORY_FILE = "inventory.json"
@@ -73,7 +74,20 @@ def add_product(inventory):
     price = get_valid_float("Price: ")
     stock = get_valid_int("Stock Quantity: ")
 
-    inventory.add_product(Product(product_id, name, price, stock))
+    product_type = ""
+    while product_type not in ("1", "2"):
+        product_type = input("Product type (1. Physical, 2. Digital): ").strip()
+        if product_type not in ("1", "2"):
+            print("Error: Please enter 1 or 2.")
+
+    if product_type == "1":
+        weight = get_valid_float("Weight (kg): ")
+        product = PhysicalProduct(product_id, name, price, stock, weight)
+    else:
+        download_size = get_valid_float("Download Size (MB): ")
+        product = DigitalProduct(product_id, name, price, stock, download_size)
+
+    inventory.add_product(product)
     print("Product added successfully!")
 
 
@@ -101,6 +115,7 @@ def search_product(inventory):
     print("Product Found")
     print(LINE)
     product.display_information()
+    print(product.get_fulfilment_info())
     print(LINE)
 
 
@@ -150,3 +165,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

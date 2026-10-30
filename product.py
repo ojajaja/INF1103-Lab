@@ -1,5 +1,8 @@
-class Product:
-    """Represents and manages a single product (SRP: one product, its own state)."""
+from abc import ABC, abstractmethod
+
+
+class Product(ABC):
+    """Abstract base for all products (SRP: the state and behaviour common to every product)."""
 
     def __init__(self, product_id, name, price, stock):
         self.__product_id = product_id
@@ -33,17 +36,23 @@ class Product:
         return True
 
     def display_information(self):
-        """Print the full details of this product."""
+        """Print the details common to every product."""
         print(f"ID: {self.__product_id}")
         print(f"Name: {self.__name}")
         print(f"Price: ${self.__price:.2f}")
         print(f"Stock: {self.__stock}")
 
+    @abstractmethod
+    def get_fulfilment_info(self):
+        """Return a message describing how this product is fulfilled."""
+        pass
+
     def to_dict(self):
-        """Return the product's data as a dictionary (used by the file handling code)."""
+        """Return the common data as a dictionary (subclasses add their own fields)."""
         return {"id": self.__product_id, "name": self.__name,
                 "price": self.__price, "stock": self.__stock}
 
     def __str__(self):
         return (f"ID: {self.__product_id} | Name: {self.__name} | "
                 f"Price: ${self.__price:.2f} | Stock: {self.__stock}")
+    

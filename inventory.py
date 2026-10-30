@@ -1,8 +1,8 @@
-from product import Product
+from product_factory import create_product
 
 
 class Inventory:
-    """Manages a collection of Product objects (SRP: the collection, not the menu or files)."""
+    """Manages a collection of Product objects (physical or digital) (SRP: the collection, not the menu or files)."""
 
     LINE = "-" * 48
 
@@ -39,4 +39,4 @@ class Inventory:
     def load_from_list(self, records):
         """Build Product objects from a list of dictionaries (from a loaded file)."""
         for r in records:
-            self.add_product(Product(r["id"], r["name"], float(r["price"]), int(r["stock"])))
+            self.add_product(create_product(r))
