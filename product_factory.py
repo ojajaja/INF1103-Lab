@@ -1,27 +1,24 @@
-"""Builds the right Product subclass from a saved record (SRP: creation from data).
+"""Centralised creation of products (Factory pattern).
 
-OCP: a new product type is added with register_product_type(), without editing this
-file's logic or Inventory.
+The rest of the program asks the factory for a Product and only needs to know the
+Product type, not PhysicalProduct or DigitalProduct.
 """
-from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
+from physical_product import PhysicalProduct
 from product import Product
 from supplier import Supplier
 
-_REGISTRY: dict[str, type[Product]] = {}
 
-
-def register_product_type(product_class: type[Product]) -> None:
-    _REGISTRY[product_class.TYPE] = product_class
-
-
-register_product_type(PhysicalProduct)
-register_product_type(DigitalProduct)
-
-
-def create_product(record: dict, supplier: Supplier) -> Product:
-    """Create a product from a dictionary using its 'type' identifier."""
-    product_class = _REGISTRY.get(record["type"])
-    if product_class is None:
-        raise ValueError(f"Unknown product type: {record['type']}")
-    return product_class.from_dict(record, supplier)
+class ProductFactory:
+    @staticmethod
+    def create(product_type: str, product_id: str, name: str, price: float,
+               stock_quantity: int, supplier: Supplier,
+               weight: float = 0.0, download_size: float = 0.0) -> Product:
+        """Build a Product. weight (kg) is used for physical, download_size (MB) for digital."""
+        kind = product_type.strip().lower()
+        if kind == PhysicalProduct.TYPE:
+            return PhysicalProduct(product_id, name, price, stock_quantity, supplier, weight)
+        elif kind == DigitalProduct.TYPE:
+            return DigitalProduct(product_id, name, price, stock_quantity, supplier, download_size)
+        else:
+            raise ValueError(f"Unknown product type: {product_type}")

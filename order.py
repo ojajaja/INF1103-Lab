@@ -1,16 +1,19 @@
+from discount_strategy import DiscountStrategy, NoDiscount
 from order_line import OrderLine
 from product import Product
 
 
 class Order:
-    """A customer order. Composition: the Order creates and manages its own OrderLines.
+    """A customer order.
 
-    OrderLines are never passed in from outside and never handed to another Order.
+    Composition: the Order creates and manages its own OrderLines.
+    Strategy: the Order is given a DiscountStrategy and only calls apply() on it.
     """
 
-    def __init__(self, order_id: str) -> None:
+    def __init__(self, order_id: str, discount: DiscountStrategy | None = None) -> None:
         self.__order_id: str = order_id
         self.__order_lines: list[OrderLine] = []
+        self.__discount: DiscountStrategy = discount if discount is not None else NoDiscount()
 
     @property
     def order_id(self) -> str:
@@ -20,6 +23,9 @@ class Order:
     def order_lines(self) -> tuple[OrderLine, ...]:
         """Read-only view: lines can only be added or removed through Order methods."""
         return tuple(self.__order_lines)
+
+    def set_discount(self, discount: DiscountStrategy) -> None:
+        self.__discount = discount
 
     def add_order_line(self, product: Product, quantity: int) -> None:
         self.__order_lines.append(OrderLine(product, quantity))
@@ -33,7 +39,8 @@ class Order:
         return False
 
     def calculate_total(self) -> float:
-        return sum(line.calculate_subtotal() for line in self.__order_lines)
+        total = sum(line.calculate_subtotal() for line in self.__order_lines)
+        return self.__discount.apply(total)
 
     def display_order(self) -> None:
         print(f"Order {self.__order_id}")

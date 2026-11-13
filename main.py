@@ -1,9 +1,10 @@
 import json
 import os
 
-from physical_product import PhysicalProduct
-from digital_product import DigitalProduct
 from inventory import Inventory
+from input_helpers import get_positive_float
+from product_factory import ProductFactory
+from product_loader import load_products
 from supplier import Supplier
 
 INVENTORY_FILE = "inventory.json"
@@ -88,7 +89,7 @@ def add_product(inventory):
     if not name:
         print("Error: Product name cannot be empty.")
         return
-    price = get_valid_float("Price: ")
+    price = get_positive_float("Price: ")
     stock = get_valid_int("Stock Quantity: ")
 
     supplier = get_supplier(inventory)
@@ -99,12 +100,18 @@ def add_product(inventory):
         if product_type not in ("1", "2"):
             print("Error: Please enter 1 or 2.")
 
-    if product_type == "1":
-        weight = get_valid_float("Weight (kg): ")
-        product = PhysicalProduct(product_id, name, price, stock, supplier, weight)
-    else:
-        download_size = get_valid_float("Download Size (MB): ")
-        product = DigitalProduct(product_id, name, price, stock, supplier, download_size)
+    try:
+        if product_type == "1":
+            weight = get_valid_float("Weight (kg): ")
+            product = ProductFactory.create("physical", product_id, name, price, stock,
+                                            supplier, weight=weight)
+        else:
+            download_size = get_valid_float("Download Size (MB): ")
+            product = ProductFactory.create("digital", product_id, name, price, stock,
+                                            supplier, download_size=download_size)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
 
     inventory.add_product(product)
     print("Product added successfully!")
@@ -138,6 +145,13 @@ def search_product(inventory):
     print(LINE)
 
 
+def load_from_csv(inventory):
+    print("Load Products from CSV")
+    path = input("CSV file path [products.csv]: ").strip() or "products.csv"
+    supplier = get_supplier(inventory)
+    load_products(path, inventory, supplier)
+
+
 def show_menu():
     print("----------- MENU -----------")
     print("1. Display All Products")
@@ -145,7 +159,8 @@ def show_menu():
     print("3. Update Stock")
     print("4. Search Product")
     print("5. Save Inventory")
-    print("6. Exit")
+    print("6. Load Products from CSV")
+    print("7. Exit")
     print("----------------------------")
 
 
@@ -173,13 +188,15 @@ def main():
             print("Saving inventory...")
             save_inventory(inventory)
         elif choice == "6":
+            load_from_csv(inventory)
+        elif choice == "7":
             print("Saving inventory before exit...")
             save_inventory(inventory)
             print("Thank you for using Inventory Management System.")
             print("Program terminated.")
             break
         else:
-            print("Invalid option. Please enter a number from 1 to 6.")
+            print("Invalid option. Please enter a number from 1 to 7.")
 
 
 if __name__ == "__main__":

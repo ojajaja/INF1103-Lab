@@ -1,5 +1,5 @@
 from product import Product
-from product_factory import create_product
+from product_factory import ProductFactory
 from supplier import Supplier
 
 # Used for records saved before suppliers existed.
@@ -84,4 +84,8 @@ class Inventory:
             if supplier is None:
                 supplier = Supplier.from_dict(s)
                 suppliers[s["id"]] = supplier
-            self.add_product(create_product(r, supplier))
+            product = ProductFactory.create(
+                r["type"], r["id"], r["name"], float(r["price"]), int(r["stock"]), supplier,
+                weight=float(r.get("weight", 0.0)),
+                download_size=float(r.get("download_size", 0.0)))
+            self.add_product(product)
