@@ -4,6 +4,7 @@ import os
 from physical_product import PhysicalProduct
 from digital_product import DigitalProduct
 from inventory import Inventory
+from supplier import Supplier
 
 INVENTORY_FILE = "inventory.json"
 LINE = "-" * 48
@@ -57,6 +58,22 @@ def get_valid_float(prompt):
         print(f"Error: '{value}' is not a valid price. Please try again.")
 
 
+def get_supplier(inventory):
+    """Reuse a known Supplier by ID, otherwise create a new independent Supplier."""
+    while True:
+        supplier_id = input("Supplier ID: ").strip()
+        if supplier_id:
+            break
+        print("Error: Supplier ID cannot be empty.")
+    existing = inventory.find_supplier(supplier_id)
+    if existing is not None:
+        print(f"Using existing supplier: {existing}")
+        return existing
+    supplier_name = input("Supplier Name: ").strip() or "Unknown"
+    contact_email = input("Supplier Email: ").strip() or "n/a"
+    return Supplier(supplier_id, supplier_name, contact_email)
+
+
 # ---------- Menu actions ----------
 def add_product(inventory):
     print("Add New Product")
@@ -64,7 +81,7 @@ def add_product(inventory):
     if not product_id:
         print("Error: Product ID cannot be empty.")
         return
-    if inventory.search_product(product_id):
+    if inventory.find_product(product_id):
         print("Error: A product with that ID already exists.")
         return
     name = input("Product Name: ").strip()
@@ -74,6 +91,8 @@ def add_product(inventory):
     price = get_valid_float("Price: ")
     stock = get_valid_int("Stock Quantity: ")
 
+    supplier = get_supplier(inventory)
+
     product_type = ""
     while product_type not in ("1", "2"):
         product_type = input("Product type (1. Physical, 2. Digital): ").strip()
@@ -82,10 +101,10 @@ def add_product(inventory):
 
     if product_type == "1":
         weight = get_valid_float("Weight (kg): ")
-        product = PhysicalProduct(product_id, name, price, stock, weight)
+        product = PhysicalProduct(product_id, name, price, stock, supplier, weight)
     else:
         download_size = get_valid_float("Download Size (MB): ")
-        product = DigitalProduct(product_id, name, price, stock, download_size)
+        product = DigitalProduct(product_id, name, price, stock, supplier, download_size)
 
     inventory.add_product(product)
     print("Product added successfully!")
@@ -94,7 +113,7 @@ def add_product(inventory):
 def update_stock(inventory):
     print("Update Stock")
     product_id = input("Enter Product ID: ").strip()
-    product = inventory.search_product(product_id)
+    product = inventory.find_product(product_id)
     if product is None:
         print("Product not found.")
         return
@@ -108,7 +127,7 @@ def update_stock(inventory):
 def search_product(inventory):
     print("Search Product")
     product_id = input("Enter Product ID: ").strip()
-    product = inventory.search_product(product_id)
+    product = inventory.find_product(product_id)
     if product is None:
         print("Product not found.")
         return

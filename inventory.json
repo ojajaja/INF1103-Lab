@@ -4,6 +4,11 @@
         "name": "tv",
         "price": 200.0,
         "stock": 200,
+        "supplier": {
+            "id": "UNKNOWN",
+            "name": "Unknown Supplier",
+            "contact_email": "n/a"
+        },
         "type": "digital",
         "download_size": 200.0
     }
